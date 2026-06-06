@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "top": {
+      "detected": true,
+      "description": "Slim-fit light blue oxford shirt, collar open two buttons — crisp fabric with minimal texture. The sleeve roll is a conscious choice and it's landing correctly. Nothing surprising but nothing wrong",
+      "color": "light blue",
+      "style_tags": ["slim-fit", "oxford", "relaxed-formal"],
+      "dominant_color_hex": "#8bafd4"
+    },
+    "bottom": {
+      "detected": true,
+      "description": "Slim chinos in mid-tan, natural waist with a clean taper — slightly cropped, showing about two inches of ankle. This proportion is doing the heavy lifting in the whole look",
+      "color": "mid tan",
+      "style_tags": ["slim", "tapered", "cropped"],
+      "dominant_color_hex": "#c4a882"
+    },
+    "shoes": {
+      "detected": true,
+      "description": "Tan leather penny loafers — lightly burnished, medium sole weight. The colour matching to the chinos reads as deliberate and polished rather than accidental",
+      "color": "tan",
+      "style_tags": ["loafer", "leather", "polished"],
+      "dominant_color_hex": "#b8865c"
+    },
+    "accessories": {
+      "detected": true,
+      "items": ["brown leather watch — medium case, clean dial", "no visible socks"],
+      "style_tags": ["classic", "restrained"],
+      "impact": "The leather watch provides the only formal anchor — without it this softens into weekend territory and loses the smart edge"
+    }
+  },
+  "overall_style": ["smart casual", "old money"],
+  "color_palette": ["#8bafd4", "#c4a882", "#b8865c"],
+  "fit_notes": "This is working cleanly — the analogous tan palette from chinos to shoes creates a pulled-together lower half, and the blue shirt provides contrast without competing. Sleeve roll and ankle gap are proportionally correct. The whole thing plays it very safely, which is both its strength and its ceiling.",
+  "one_improvement": "Add a cream or ivory crew-neck tee as a base layer under the open shirt — the exposed collar area is slightly severe, and a visible tee introduces texture and warmth without disrupting the palette",
+  "improvement_category": "top",
+  "style_confidence_score": 7,
+  "occasion_fit": ["business casual", "dinner out", "weekend lunch"]
+}

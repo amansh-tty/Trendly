@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "top": {
+      "detected": true,
+      "description": "Oversized washed black graphic tee — the chest print is small and intentional, giving it a vintage quality rather than loud branding. Fabric has enough weight to hold shape without being stiff",
+      "color": "washed black",
+      "style_tags": ["oversized", "graphic", "vintage-washed"],
+      "dominant_color_hex": "#1c1c1c"
+    },
+    "bottom": {
+      "detected": true,
+      "description": "Straight-leg dark indigo denim, mid-rise with a clean hem — no distressing, which stops this from sliding into generic casual territory. The silhouette is doing real work here",
+      "color": "dark indigo",
+      "style_tags": ["straight-leg", "clean", "structured"],
+      "dominant_color_hex": "#1e2d4a"
+    },
+    "shoes": {
+      "detected": true,
+      "description": "Clean white low-top leather sneakers — minimal branding, cupsole construction. Working very hard to keep this grounded and they're succeeding, but only just",
+      "color": "white",
+      "style_tags": ["minimal", "clean", "low-profile"],
+      "dominant_color_hex": "#f0f0f0"
+    },
+    "accessories": {
+      "detected": true,
+      "items": ["black cap worn forward", "silver chain — medium weight, layered"],
+      "style_tags": ["tonal", "streetwear"],
+      "impact": "The cap and chain pull this firmly into clean streetwear — without them this reads as plain casual and loses the point of view entirely"
+    }
+  },
+  "overall_style": ["clean streetwear", "minimalist"],
+  "color_palette": ["#1c1c1c", "#1e2d4a", "#f0f0f0"],
+  "fit_notes": "The oversized top against straight denim is working — there's a clear size contrast without looking sloppy. White sneakers are doing the most here; they're earning their keep but one bolder shoe choice would elevate this from good to genuinely interesting. Overall impression is considered and deliberate, not effortless.",
+  "one_improvement": "Swap the white sneakers for a chunky black sneaker or a low black boot — the white is breaking the tonal story and fighting with the dark indigo denim at the bottom of the frame. Black footwear would close the loop and make this read as complete",
+  "improvement_category": "shoes",
+  "style_confidence_score": 7,
+  "occasion_fit": ["weekend hangout", "casual date", "creative office"]
+}

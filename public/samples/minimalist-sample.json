@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "top": {
+      "detected": true,
+      "description": "Heavy-weight white crew neck tee — substantial fabric that holds its shape rather than draping. Boxy cut sitting just at the hip. The quality of the fabric is visible even at a distance",
+      "color": "white",
+      "style_tags": ["boxy", "heavyweight", "clean"],
+      "dominant_color_hex": "#f0ece4"
+    },
+    "bottom": {
+      "detected": true,
+      "description": "Wide-leg charcoal trousers with a pressed front crease — high-waisted, clean break at the ankle. The structure is carrying most of the visual weight in this look",
+      "color": "charcoal",
+      "style_tags": ["wide-leg", "structured", "tailored"],
+      "dominant_color_hex": "#4a4a4a"
+    },
+    "shoes": {
+      "detected": true,
+      "description": "Black leather derby shoes — round toe, minimal stitching, matte finish. Exactly the right weight and formality to ground the wide trousers without over-dressing them",
+      "color": "black",
+      "style_tags": ["derby", "leather", "minimal-formal"],
+      "dominant_color_hex": "#1a1a1a"
+    },
+    "accessories": {
+      "detected": false,
+      "items": [],
+      "style_tags": [],
+      "impact": "No accessories — the restraint is intentional and it's working. Adding anything here risks cluttering the visual silence this outfit has carefully built"
+    }
+  },
+  "overall_style": ["minimalist", "quiet luxury"],
+  "color_palette": ["#f0ece4", "#4a4a4a", "#1a1a1a"],
+  "fit_notes": "High contrast executed correctly — white tee anchored by dark trousers and black shoes creates a clean vertical line. The wide leg requires the boxy top to balance; a slim fit here would make the bottom half look disproportionate. This reads as intentionally quiet to anyone paying attention.",
+  "one_improvement": "Half-tuck the tee — the full untuck creates a horizontal break that interrupts the vertical line. A clean half-tuck or full tuck resolves this and sharpens the whole silhouette by about 30%",
+  "improvement_category": "fit",
+  "style_confidence_score": 8,
+  "occasion_fit": ["gallery opening", "creative office", "weekend market"]
+}
