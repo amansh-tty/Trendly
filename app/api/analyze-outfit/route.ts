@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     if (!imageBase64) {
       return NextResponse.json({ error: 'imageBase64 is required' }, { status: 400 });
     }
-
+    console.log('uploading image...')
     const imageUrl = await uploadImage(imageBase64);
 
     const completion = await openai.chat.completions.create({

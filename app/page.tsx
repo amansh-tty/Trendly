@@ -8,7 +8,7 @@ import { Loader2, RotateCcw, ArrowRight } from 'lucide-react';
 import type { AiSections, AiSection, AiAccessories } from '@/types';
 
 type Status = 'idle' | 'uploading' | 'analyzing' | 'done';
-type View = 'hero' | 'preview' | 'sample-select' | 'result';
+type View = 'hero' | 'preview' | 'sample-select' | 'result' | 'error';
 
 interface AnalysisResult {
   aiSections: AiSections;
@@ -188,10 +188,12 @@ function AnalysisPanel({
   result,
   onReset,
   onSave,
+  onReupload,
 }: {
   result: AnalysisResult;
   onReset: () => void;
   onSave: () => void;
+  onReupload?: () => void;
 }) {
   const { aiSections, imageUrl } = result;
   const {
@@ -226,12 +228,25 @@ function AnalysisPanel({
             </span>
           </div>
         ) : (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={imageUrl}
-            alt="Uploaded outfit"
-            className="w-full max-h-100 lg:max-h-none object-cover rounded-[14px]"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt="Uploaded outfit"
+              className="w-full max-h-100 lg:max-h-none object-cover rounded-[14px]"
+            />
+            {onReupload && (
+              <button
+                onClick={onReupload}
+                className="mt-2 w-full font-jost text-[12px] py-1 text-center transition-colors"
+                style={{ color: 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+              >
+                Upload a different photo
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -394,6 +409,14 @@ export default function Home() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Analysis failed');
       setStatus('idle');
+      setView('error');
+    }
+  };
+
+  const handleReupload = () => {
+    if (inputRef.current) {
+      inputRef.current.value = '';
+      inputRef.current.click();
     }
   };
 
@@ -616,10 +639,38 @@ export default function Home() {
         </>
       )}
 
+      {/* ── Error ── */}
+      {view === 'error' && (
+        <>
+          <header className="px-6 pt-7 pb-2">
+            <span className="font-fraunces italic text-sm tracking-tight" style={{ color: 'var(--color-text)' }}>
+              Trendly
+            </span>
+          </header>
+          <main className="flex-1 flex flex-col items-center justify-center px-6 gap-6 text-center">
+            <div className="flex flex-col items-center gap-3 max-w-70">
+              <h2 className="font-fraunces text-[32px] leading-tight text-foreground">
+                Something went wrong
+              </h2>
+              <p className="font-jost text-[14px]" style={{ color: 'var(--color-text-secondary)' }}>
+                Try a clearer photo with good lighting
+              </p>
+            </div>
+            <button
+              onClick={() => { handleReset(); inputRef.current?.click(); }}
+              className="h-12 px-8 rounded-[14px] font-jost font-medium text-sm tracking-wide transition-opacity hover:opacity-90"
+              style={{ background: 'var(--color-accent-gold)', color: '#0a0a0a' }}
+            >
+              Try another photo
+            </button>
+          </main>
+        </>
+      )}
+
       {/* ── Result ── */}
       {view === 'result' && result && (
         <main className="max-w-2xl mx-auto w-full px-5 pt-6">
-          <AnalysisPanel result={result} onReset={handleReset} onSave={handleSaveClick} />
+          <AnalysisPanel result={result} onReset={handleReset} onSave={handleSaveClick} onReupload={handleReupload} />
         </main>
       )}
 
