@@ -5,11 +5,12 @@ import Navbar from '@/components/wardrobe/Navbar';
 import SaveModal from '@/components/wardrobe/SaveModal';
 import { supabase } from '@/lib/supabase';
 import { upsertStyleProfile } from '@/lib/styleProfile';
+import type { StyleRevealData } from '@/lib/styleProfile';
 import { Loader2, RotateCcw, ArrowRight } from 'lucide-react';
 import type { AiSections, AiSection, AiAccessories } from '@/types';
 
 type Status = 'idle' | 'uploading' | 'analyzing' | 'done';
-type View = 'hero' | 'preview' | 'sample-select' | 'result' | 'error';
+type View = 'hero' | 'preview' | 'sample-select' | 'result' | 'error' | 'style-reveal';
 
 interface AnalysisResult {
   aiSections: AiSections;
@@ -412,10 +413,139 @@ function AnalysisPanel({
   );
 }
 
+/* ─── Style reveal helpers ─── */
+function generateStyleSummary(styles: string[], signals: string[]): string {
+  const s1 = styles[0] ?? 'considered';
+  const s2 = styles[1];
+  const sig1 = signals[0] ?? 'intentional';
+  const sig2 = signals[1] ?? 'considered';
+  const stylePhrase = s2 ? `${s1} and ${s2}` : s1;
+  return `You gravitate toward ${stylePhrase} looks — ${sig1} and ${sig2}, with a clear point of view.`;
+}
+
+/* ─── Style reveal screen ─── */
+function StyleRevealScreen({
+  profile,
+  onYes,
+  onSkip,
+}: {
+  profile: StyleRevealData;
+  onYes: () => void;
+  onSkip: () => void;
+}) {
+  const topStyles = profile.dominant_styles.slice(0, 2);
+  const topColors = profile.dominant_colors.slice(0, 3);
+  const topSignals = profile.style_signals.slice(0, 5);
+  const summary = generateStyleSummary(profile.dominant_styles, profile.style_signals);
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col items-center gap-8 w-full max-w-sm">
+
+        {/* Headline */}
+        <div className="text-center flex flex-col gap-2">
+          <p className="font-jost text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Style memory
+          </p>
+          <h2 className="font-fraunces italic text-[28px] leading-tight text-foreground">
+            We&apos;ve been paying attention. ✦
+          </h2>
+        </div>
+
+        {/* Style identity card */}
+        <div
+          className="w-full rounded-[18px] p-5 flex flex-col gap-5"
+          style={{
+            background: 'var(--color-surface)',
+            border: '1px solid rgba(200,176,138,0.2)',
+          }}
+        >
+          {/* Style tags */}
+          {topStyles.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {topStyles.map((s) => (
+                <span
+                  key={s}
+                  className="px-4 py-1.5 rounded-full font-fraunces text-[15px]"
+                  style={{
+                    background: 'rgba(200,176,138,0.12)',
+                    border: '1px solid rgba(200,176,138,0.3)',
+                    color: 'var(--color-accent-gold)',
+                  }}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Color palette */}
+          {topColors.length > 0 && (
+            <div className="flex items-center gap-2">
+              {topColors.map((hex) => (
+                <span
+                  key={hex}
+                  className="w-8 h-8 rounded-full border-2"
+                  style={{ backgroundColor: hex, borderColor: 'rgba(255,255,255,0.1)' }}
+                />
+              ))}
+              <span className="font-jost text-[11px] text-muted-foreground ml-1">Your palette</span>
+            </div>
+          )}
+
+          {/* Personality signals */}
+          {topSignals.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {topSignals.map((sig) => (
+                <span
+                  key={sig}
+                  className="px-2.5 py-0.5 rounded-full font-jost text-[11px] text-muted-foreground"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  {sig}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Summary sentence */}
+          <p className="font-jost text-[13px] leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+            {summary}
+          </p>
+        </div>
+
+        {/* CTA */}
+        <div className="flex flex-col items-center gap-4 w-full">
+          <p className="font-jost text-[14px] text-center" style={{ color: 'var(--color-text-secondary)' }}>
+            Use this to personalise your analysis from now on?
+          </p>
+          <button
+            onClick={onYes}
+            className="w-full h-12 rounded-[14px] font-jost font-medium text-sm tracking-wide transition-opacity hover:opacity-90"
+            style={{ background: 'var(--color-accent-gold)', color: '#0a0a0a' }}
+          >
+            Yes, remember my style
+          </button>
+          <button
+            onClick={onSkip}
+            className="font-jost text-[13px] transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Skip for now
+          </button>
+        </div>
+
+      </div>
+    </main>
+  );
+}
+
 /* ─── Main page ─── */
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const revealUidRef = useRef<string | null>(null);
   const [view, setView] = useState<View>('hero');
+  const [styleReveal, setStyleReveal] = useState<StyleRevealData | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('idle');
@@ -480,6 +610,8 @@ export default function Home() {
     setStatus('idle');
     setIsSaved(false);
     setIsSaving(false);
+    setStyleReveal(null);
+    revealUidRef.current = null;
     setView('hero');
     if (inputRef.current) inputRef.current.value = '';
   };
@@ -546,9 +678,15 @@ export default function Home() {
       setIsSaving(true);
       try {
         await saveToCloset(data.user.id, result);
-        await upsertStyleProfile(data.user.id, result.aiSections);
+        const { newCount, profile } = await upsertStyleProfile(data.user.id, result.aiSections);
         setIsSaved(true);
-        showToast('Added to your closet ✦');
+        if (newCount === 3) {
+          revealUidRef.current = data.user.id;
+          setStyleReveal(profile);
+          setView('style-reveal');
+        } else {
+          showToast('Added to your closet ✦');
+        }
       } catch (err) {
         console.error('[handleSaveClick]', err);
         showToast('Save failed — try again');
@@ -575,9 +713,15 @@ export default function Home() {
               setResult(saved);
               setView('result');
               await saveToCloset(uid, saved);
-              await upsertStyleProfile(uid, saved.aiSections);
+              const { newCount, profile } = await upsertStyleProfile(uid, saved.aiSections);
               setIsSaved(true);
-              showToast('Added to your closet ✦');
+              if (newCount === 3) {
+                revealUidRef.current = uid;
+                setStyleReveal(profile);
+                setView('style-reveal');
+              } else {
+                showToast('Added to your closet ✦');
+              }
             } catch (err) {
               console.error('[onAuthStateChange save]', err);
               showToast('Save failed — try again');
@@ -739,6 +883,25 @@ export default function Home() {
             </button>
           </main>
         </>
+      )}
+
+      {/* ── Style reveal ── */}
+      {view === 'style-reveal' && styleReveal && (
+        <StyleRevealScreen
+          profile={styleReveal}
+          onYes={async () => {
+            const uid = revealUidRef.current;
+            if (uid) {
+              await supabase.from('profiles').update({ style_memory_enabled: true }).eq('id', uid);
+              showToast('Style memory on ✦');
+            }
+            setView('result');
+          }}
+          onSkip={() => {
+            showToast('Added to your closet ✦');
+            setView('result');
+          }}
+        />
       )}
 
       {/* ── Result ── */}

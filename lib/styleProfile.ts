@@ -1,6 +1,17 @@
 import { supabase } from './supabase';
 import type { AiSections } from '@/types';
 
+export interface StyleRevealData {
+  dominant_styles: string[];
+  dominant_colors: string[];
+  style_signals: string[];
+}
+
+export interface StyleProfileResult {
+  newCount: number;
+  profile: StyleRevealData;
+}
+
 // Merges two arrays and sorts by frequency — most-seen items float to the front
 function mergeByFrequency(existing: string[], incoming: string[]): string[] {
   const combined = [...existing, ...incoming];
@@ -13,9 +24,10 @@ function mergeByFrequency(existing: string[], incoming: string[]): string[] {
 
 /**
  * Accumulates style signals into style_profile after each analysis.
- * Returns the updated analyses_count so callers can trigger milestone moments.
+ * Returns newCount + merged profile so callers can trigger milestone moments
+ * without a second DB read.
  */
-export async function upsertStyleProfile(uid: string, aiSections: AiSections): Promise<number> {
+export async function upsertStyleProfile(uid: string, aiSections: AiSections): Promise<StyleProfileResult> {
   const { data: existing } = await supabase
     .from('style_profile')
     .select('dominant_styles, dominant_colors, style_signals, improvement_areas, occasion_preferences, analyses_count')
@@ -54,5 +66,12 @@ export async function upsertStyleProfile(uid: string, aiSections: AiSections): P
     .eq('id', uid);
   if (profileCountError) console.error('[upsertStyleProfile] profile count update failed:', profileCountError);
 
-  return newCount;
+  return {
+    newCount,
+    profile: {
+      dominant_styles: merged.dominant_styles,
+      dominant_colors: merged.dominant_colors,
+      style_signals: merged.style_signals,
+    },
+  };
 }
