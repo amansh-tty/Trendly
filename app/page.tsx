@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Navbar from '@/components/wardrobe/Navbar';
 import SaveModal from '@/components/wardrobe/SaveModal';
 import { supabase } from '@/lib/supabase';
+import { upsertStyleProfile } from '@/lib/styleProfile';
 import { Loader2, RotateCcw, ArrowRight } from 'lucide-react';
 import type { AiSections, AiSection, AiAccessories } from '@/types';
 
@@ -189,16 +190,22 @@ function AnalysisPanel({
   onReset,
   onSave,
   onReupload,
+  isSaved,
+  isSaving,
 }: {
   result: AnalysisResult;
   onReset: () => void;
   onSave: () => void;
   onReupload?: () => void;
+  isSaved?: boolean;
+  isSaving?: boolean;
 }) {
   const { aiSections, imageUrl } = result;
   const {
     sections,
+    opening_line,
     overall_style,
+    style_signals,
     fit_notes,
     one_improvement,
     style_confidence_score,
@@ -253,6 +260,18 @@ function AnalysisPanel({
       {/* ── Right: results panel ── */}
       <div className="flex flex-col gap-6 lg:w-[55%]">
 
+        {/* Opening line */}
+        {opening_line && (
+          <div className="pl-4 py-0.5" style={{ borderLeft: '2px solid var(--color-accent-gold)' }}>
+            <p
+              className="font-fraunces italic text-[22px] leading-snug"
+              style={{ color: 'var(--color-accent-gold)' }}
+            >
+              {opening_line}
+            </p>
+          </div>
+        )}
+
         {/* A — Style verdict */}
         <div className="flex flex-col gap-1.5">
           <p
@@ -267,6 +286,30 @@ function AnalysisPanel({
               .join(' · ')}
           </h1>
         </div>
+
+        {/* A2 — Style signals */}
+        {style_signals && style_signals.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="font-jost text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
+              This outfit says:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {style_signals.map((signal) => (
+                <span
+                  key={signal}
+                  className="px-2.5 py-1 rounded-full font-jost text-[12px]"
+                  style={{
+                    background: 'rgba(200,176,138,0.08)',
+                    border: '1px solid rgba(200,176,138,0.2)',
+                    color: 'var(--color-accent-gold)',
+                  }}
+                >
+                  {signal}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* B — Score badge */}
         <ScoreBadge score={style_confidence_score} />
@@ -340,10 +383,17 @@ function AnalysisPanel({
             <>
               <button
                 onClick={onSave}
-                className="flex-1 h-12 rounded-[14px] font-jost font-medium text-sm tracking-wide transition-opacity hover:opacity-90"
+                disabled={isSaved || isSaving}
+                className="flex-1 h-12 rounded-[14px] font-jost font-medium text-sm tracking-wide transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
                 style={{ background: 'var(--color-accent-gold)', color: '#0a0a0a' }}
               >
-                Save to my closet
+                {isSaving ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" />Saving…</>
+                ) : isSaved ? (
+                  'Saved ✦'
+                ) : (
+                  'Save to my closet'
+                )}
               </button>
               <button
                 onClick={onReset}
@@ -373,6 +423,8 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -426,6 +478,8 @@ export default function Home() {
     setResult(null);
     setError(null);
     setStatus('idle');
+    setIsSaved(false);
+    setIsSaving(false);
     setView('hero');
     if (inputRef.current) inputRef.current.value = '';
   };
@@ -437,6 +491,13 @@ export default function Home() {
 
   const saveToCloset = async (uid: string, data: AnalysisResult) => {
     const { aiSections, imageUrl } = data;
+
+    // Ensure a profiles row exists — wardrobe_items FK references profiles(id)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({ id: uid }, { onConflict: 'id' });
+    if (profileError) console.error('[saveToCloset] profile upsert failed:', profileError);
+
     const allTags = [
       ...aiSections.sections.top.style_tags,
       ...aiSections.sections.bottom.style_tags,
@@ -476,13 +537,23 @@ export default function Home() {
 
   const handleSaveClick = async () => {
     if (!result) return;
+    if (isSaved) {
+      showToast('Already in your closet ✦');
+      return;
+    }
     const { data } = await supabase.auth.getUser();
     if (data.user) {
+      setIsSaving(true);
       try {
         await saveToCloset(data.user.id, result);
+        await upsertStyleProfile(data.user.id, result.aiSections);
+        setIsSaved(true);
         showToast('Added to your closet ✦');
-      } catch {
+      } catch (err) {
+        console.error('[handleSaveClick]', err);
         showToast('Save failed — try again');
+      } finally {
+        setIsSaving(false);
       }
     } else {
       localStorage.setItem('pendingAnalysis', JSON.stringify(result));
@@ -504,8 +575,11 @@ export default function Home() {
               setResult(saved);
               setView('result');
               await saveToCloset(uid, saved);
+              await upsertStyleProfile(uid, saved.aiSections);
+              setIsSaved(true);
               showToast('Added to your closet ✦');
-            } catch {
+            } catch (err) {
+              console.error('[onAuthStateChange save]', err);
               showToast('Save failed — try again');
             }
           }
@@ -670,7 +744,7 @@ export default function Home() {
       {/* ── Result ── */}
       {view === 'result' && result && (
         <main className="max-w-2xl mx-auto w-full px-5 pt-6">
-          <AnalysisPanel result={result} onReset={handleReset} onSave={handleSaveClick} onReupload={handleReupload} />
+          <AnalysisPanel result={result} onReset={handleReset} onSave={handleSaveClick} onReupload={handleReupload} isSaved={isSaved} isSaving={isSaving} />
         </main>
       )}
 

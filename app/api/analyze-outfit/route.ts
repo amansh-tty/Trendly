@@ -5,12 +5,16 @@ import type { AiSections } from '@/types';
 
 export async function POST(req: NextRequest) {
   try {
-    const { imageBase64 } = await req.json();
+    const { imageBase64, uploadContext } = await req.json();
     if (!imageBase64) {
       return NextResponse.json({ error: 'imageBase64 is required' }, { status: 400 });
     }
     console.log('uploading image...')
     const imageUrl = await uploadImage(imageBase64);
+
+    const userText = uploadContext
+      ? `Analyse this outfit. Context: ${uploadContext}.`
+      : 'Analyse this outfit.';
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -28,7 +32,7 @@ export async function POST(req: NextRequest) {
                   : `data:image/jpeg;base64,${imageBase64}`,
               },
             },
-            { type: 'text', text: 'Analyse this outfit.' },
+            { type: 'text', text: userText },
           ],
         },
       ],

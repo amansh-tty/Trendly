@@ -32,6 +32,7 @@ export interface AiSections {
     shoes: AiSection;
     accessories: AiAccessories;
   };
+  opening_line?: string;
   overall_style: string[];
   color_palette: string[];
   fit_notes: string;
@@ -39,6 +40,7 @@ export interface AiSections {
   improvement_category: string;
   style_confidence_score: number;
   occasion_fit: string[];
+  style_signals?: string[];
 }
 
 export interface WardrobeItem {
